@@ -1,10 +1,3 @@
-//
-//  SceneDelegate.swift
-//  CargoCompanyPark
-//
-//  Created by Nikolay Ratushnyak on 05.10.2024.
-//
-
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
