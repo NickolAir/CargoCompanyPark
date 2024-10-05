@@ -5,15 +5,15 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let truck1 = Truck(trailerAttached: true, trailerCapacity: 5000, make: "Mercedes", model: "Actros", year: 2019, capacity: 20000, types: [.bulk(maxWetAir: 10)], currentLoad: 15000)
-        let truck2 = Truck(trailerAttached: false, make: "Scania", model: "R450", year: 2020, capacity: 18000, types: [.perishable(maxTemperature: 5)], currentLoad: 12000)
+        let truck1 = Truck(trailerAttached: true, trailerCapacity: 5000, make: "Mercedes", model: "Actros", year: 2019, capacity: 20000, types: [.bulk(WetAir: 10)], currentLoad: 12000)
+        let truck2 = Truck(trailerAttached: false, make: "Scania", model: "R450", year: 2020, capacity: 18000, types: [.perishable(Temperature: 5)], currentLoad: 12000)
 
         let fleet = Fleet()
         fleet.addVehicle(truck1)
         fleet.addVehicle(truck2)
         
         guard let fragileCargo = Cargo(description: "Fragile", weight: 5000, type: .fragile(maxLoad: 1000)) else { return }
-        guard let bulkCargo = Cargo(description: "Bulk", weight: 8000, type: .bulk(maxWetAir: 50)) else { return }
+        guard let bulkCargo = Cargo(description: "Bulk", weight: 8000, type: .bulk(WetAir: 10)) else { return }
 
         truck1.loadCargo(cargo: bulkCargo)
         truck1.loadCargo(cargo: fragileCargo)
@@ -27,8 +27,8 @@ class ViewController: UIViewController {
 
 enum CargoType: Equatable {
     case fragile(maxLoad: Int)
-    case perishable(maxTemperature: Double)
-    case bulk(maxWetAir: Int)
+    case perishable(Temperature: Double)
+    case bulk(WetAir: Int)
     
     static func == (first: CargoType, second: CargoType) -> Bool {
         switch (first, second) {
@@ -116,48 +116,35 @@ class Truck: Vehicle {
     }
     
     override func loadCargo(cargo: Cargo) {
-        if(cargo.weight + currentLoad > capacity + (trailerCapacity ?? 0)) {
+        let totalCapacity = capacity + (trailerCapacity ?? 0)
+        
+        if cargo.weight + currentLoad > totalCapacity {
             print("can't load cargo, capacity is not enough")
             return
-        } else {
-            if (cargo.weight + currentLoad <= capacity) {
-                if let supportedTypes = types {
-                    if supportedTypes.contains(where: { $0 == cargo.type }){
-                        currentLoad += cargo.weight
-                        print("cargo loaded succesfully +\(cargo.weight)")
-                        return
-                    } else {
-                        print("can't load cargo, capacity is not enough")
-                        return
-                    }
-                } else {
-                    currentLoad += cargo.weight
-                    print("cargo loaded succesfully +\(cargo.weight)")
+        }
+        if cargo.weight + currentLoad <= capacity {
+            if let supportedTypes = types, !supportedTypes.contains(where: { $0 == cargo.type }) {
+                print("This type of cargo not available")
+                return
+            }
+            currentLoad += cargo.weight
+            print("cargo loaded successfully in main truck +\(cargo.weight)")
+            return
+        }
+        
+        if let trailerCapacity = trailerCapacity, let trailerTypes = trailerTypes {
+            let remainingWeight = cargo.weight + currentLoad - capacity
+            if remainingWeight <= trailerCapacity {
+                if !trailerTypes.contains(where: { $0 == cargo.type }) {
+                    print("This type of cargo not available")
                     return
                 }
-            } else if (cargo.weight + currentLoad <= trailerCapacity ?? 0){
-                if let supportedTypes = trailerTypes {
-                    if supportedTypes.contains(where: { $0 == cargo.type }){
-                        currentLoad += cargo.weight
-                        print("cargo loaded succesfully +\(cargo.weight)")
-                        return
-                    } else {
-                        print("can't load cargo, capacity is not enough")
-                        return
-                    }
-                } else {
-                    currentLoad += cargo.weight
-                    print("cargo loaded succesfully +\(cargo.weight)")
-                    return
-                }
-            } else if let supportedTypesTrailer = trailerTypes, let supportedTypes = types {
-                if supportedTypesTrailer.contains(where: { $0 == cargo.type }) && supportedTypes.contains(where: { $0 == cargo.type }) {
-                    currentLoad += cargo.weight
-                    print("cargo loaded succesfully +\(cargo.weight)")
-                    return
-                }
+                currentLoad += cargo.weight
+                print("cargo loaded successfully in trailer +\(cargo.weight)")
+                return
             }
         }
+        print("can't load cargo, capacity is not enough")
     }
 }
     
