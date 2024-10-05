@@ -4,7 +4,22 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        let truck1 = Truck(trailerAttached: true, trailerCapacity: 5000, make: "Mercedes", model: "Actros", year: 2019, capacity: 20000, types: [.bulk(maxWetAir: 10)], currentLoad: 15000)
+        let truck2 = Truck(trailerAttached: false, make: "Scania", model: "R450", year: 2020, capacity: 18000, types: [.perishable(maxTemperature: 5)], currentLoad: 12000)
+
+        let fleet = Fleet()
+        fleet.addVehicle(truck1)
+        fleet.addVehicle(truck2)
+        
+        guard let fragileCargo = Cargo(description: "Fragile", weight: 5000, type: .fragile(maxLoad: 1000)) else { return }
+        guard let bulkCargo = Cargo(description: "Bulk", weight: 8000, type: .bulk(maxWetAir: 50)) else { return }
+
+        truck1.loadCargo(cargo: bulkCargo)
+        truck1.loadCargo(cargo: fragileCargo)
+        truck1.unloadCargo()
+
+        fleet.info()
     }
 
 
@@ -173,5 +188,11 @@ class Fleet {
             total += vehicle.currentLoad
         }
         return total
+    }
+    
+    func info() {
+        for (index, vehicle) in fleetArray.enumerated() {
+                    print("Vehicle №\(index + 1): \(vehicle.make) \(vehicle.model), \(vehicle.year) year, vehicle capacity: \(vehicle.capacity) kg, current load: \(vehicle.currentLoad) kg")
+                }
     }
 }
