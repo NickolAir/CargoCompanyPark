@@ -66,14 +66,20 @@ class Vehicle {
     let capacity: Int
     var types: [CargoType]?
     var currentLoad: Int = 0
+    let tankCapacity: Double
+    let fuelConsumption: Double
+    var fuelLevel: Double
     
-    init(make: String, model: String, year: Int, capacity: Int, types: [CargoType]? = nil, currentLoad: Int) {
+    init(make: String, model: String, year: Int, capacity: Int, types: [CargoType]? = nil, currentLoad: Int, tankCapacity: Double, fuelConsumption: Double, fuelLevel: Double) {
         self.make = make
         self.model = model
         self.year = year
         self.capacity = capacity
         self.types = types
         self.currentLoad = currentLoad
+        self.tankCapacity = tankCapacity
+        self.fuelConsumption = fuelConsumption
+        self.fuelLevel = tankCapacity
     }
     
     func loadCargo(cargo: Cargo) {
@@ -101,6 +107,26 @@ class Vehicle {
         currentLoad = 0
         print("cargo unloaded succesfully")
     }
+    
+    func canGo(cargo: [Cargo], path: Int) -> Bool {
+            let totalCargoWeight = cargo.reduce(0) { $0 + $1.weight }
+            
+            if totalCargoWeight > capacity {
+                print("Overloading!")
+                return false
+            }
+            
+            let totalDistance = Double(path * 2)
+            let fuelNeeded = (fuelConsumption / 100) * totalDistance
+            
+            if fuelNeeded > (tankCapacity / 2) {
+                print("Fuel not enough")
+                return false
+            }
+            
+            print("Distance: \(path) km. Fuel needed: \(fuelNeeded) liters.")
+            return true
+        }
 }
 
 class Truck: Vehicle {
@@ -108,11 +134,11 @@ class Truck: Vehicle {
     var trailerCapacity: Int?
     var trailerTypes: [CargoType]?
     
-    init(trailerAttached: Bool, trailerCapacity: Int? = nil, trailerTypes: [CargoType]? = nil, make: String, model: String, year: Int, capacity: Int, types: [CargoType]? = nil, currentLoad: Int) {
+    init(trailerAttached: Bool, trailerCapacity: Int? = nil, trailerTypes: [CargoType]? = nil, make: String, model: String, year: Int, capacity: Int, types: [CargoType]? = nil, currentLoad: Int, tankCapacity: Double, fuelConsumption: Double, fuelLevel: Double) {
         self.trailerAttached = trailerAttached
         self.trailerCapacity = trailerCapacity
         self.trailerTypes = trailerTypes
-        super.init(make: make, model: model, year: year, capacity: capacity, types: types, currentLoad: currentLoad)
+        super.init(make: make, model: model, year: year, capacity: capacity, types: types, currentLoad: currentLoad, tankCapacity: tankCapacity, fuelConsumption: fuelConsumption, fuelLevel: fuelLevel)
     }
     
     override func loadCargo(cargo: Cargo) {
